@@ -7,6 +7,8 @@ async function run(){const nodes=new Map();const get=id=>{if(!nodes.has(id))node
  assert.ok(url.startsWith('https://api.github.com/repos/NYAYNA/nyaender/contents/site/content.json'));
  assert.equal(o.headers.Authorization,'Bearer test-only-token');
  if(mode==='unauthorized')return{ok:false,status:401};
+ if(mode==='forbidden')return{ok:false,status:403};
+ if(mode==='notfound')return{ok:false,status:404};
  if(o.method==='PUT'){puts++;const body=JSON.parse(o.body);assert.equal(body.branch,'main');assert.equal(body.sha,'sha-current');const d=JSON.parse(Buffer.from(body.content,'base64').toString('utf8'));assert.equal(d.title,content.title);if(mode==='conflict')return{ok:false,status:409};return{ok:true,json:async()=>({content:{sha:'sha-next'}})};}
  reads++;return{ok:true,json:async()=>({sha:'sha-current',content:Buffer.from(JSON.stringify(content)).toString('base64')})};
  }};vm.createContext(context);vm.runInContext(source,context);await new Promise(setImmediate);assert.ok(get('editor').children.length>0);assert.equal(vm.runInContext('connection',context),null);
@@ -22,7 +24,8 @@ async function run(){const nodes=new Map();const get=id=>{if(!nodes.has(id))node
  runCode('while(undoActions.length)undoStructure()');assert.equal(runCode('JSON.stringify(data)'),original);
  runCode('dirty=false;location.hash=""'); for(const [k,v]of Object.entries({owner:'NYAYNA',repo:'nyaender',branch:'main'}))get(k).value=v;
  await get('connect').onclick();assert.match(get('status').textContent,/입력/);assert.equal(reads,0);
- mode='unauthorized';get('token').value='test-only-token';await get('connect').onclick();assert.equal(get('save').disabled,false);assert.equal(get('token').value,'');assert.match(get('status').textContent,/권한/);
+ mode='unauthorized';get('token').value='test-only-token';await get('connect').onclick();assert.equal(get('save').disabled,false);assert.equal(get('token').value,'');assert.match(get('status').textContent,/401/);
+ for(const [failure,pattern] of [['forbidden',/403/],['notfound',/404/]]){mode=failure;get('token').value='test-only-token';await get('connect').onclick();assert.match(get('status').textContent,pattern);assert.equal(vm.runInContext('connection',context),null);assert.equal(get('token').value,'');}
  mode='ok';get('token').value='test-only-token';await get('connect').onclick();assert.equal(get('save').disabled,false);assert.equal(get('token').value,'');assert.equal(reads,1);
  mode='conflict';await get('save').onclick();assert.match(get('status').textContent,/다른 수정/);assert.equal(vm.runInContext('sha',context),'sha-current');
  mode='ok';await get('save').onclick();assert.equal(vm.runInContext('sha',context),'sha-next');assert.match(get('status').textContent,/저장했습니다/);assert.equal(puts,2);

@@ -3,7 +3,7 @@ const source=fs.readFileSync(__dirname+'/site/admin/admin.js','utf8');
 const content=JSON.parse(fs.readFileSync(__dirname+'/site/content.json','utf8'));
 class Element{constructor(){this.value='';this.children=[];this.disabled=false;}append(...v){this.children.push(...v);}replaceChildren(...v){this.children=v;}addEventListener(){}setAttribute(){}click(){}}
 async function run(){const nodes=new Map();const get=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id);};let mode='ok',puts=0,reads=0;const context={location:{hash:""},requestAnimationFrame:fn=>fn(),document:{getElementById:get,createElement:()=>new Element(),createTextNode:t=>t,querySelectorAll:()=>[]},window:{addEventListener(){}},TextEncoder,TextDecoder,Uint8Array,Date,Blob,URL,setTimeout,confirm:()=>true,btoa:s=>Buffer.from(s,'binary').toString('base64'),atob:s=>Buffer.from(s,'base64').toString('binary'),fetch:async(url,o)=>{
- if(url==='https://nyayna.github.io/nyaender/content.json')return{ok:true,json:async()=>structuredClone(content)};
+ if(url==='https://nyaender.pages.dev/content.json')return{ok:true,json:async()=>structuredClone(content)};
  assert.ok(url.startsWith('https://api.github.com/repos/NYAYNA/nyaender/contents/site/content.json'));
  assert.equal(o.headers.Authorization,'Bearer test-only-token');
  if(mode==='unauthorized')return{ok:false,status:401};
